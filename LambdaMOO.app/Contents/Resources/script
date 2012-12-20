@@ -1,0 +1,66 @@
+#!/bin/bash
+
+echo "PROGRESS:5"
+
+in="$1"
+case "$in" in
+*.moo) ;;
+*)
+    echo "FAILED TO START"
+    exit 1
+    ;;
+esac
+
+ts=$( date +%Y%m%d-%H%M%S )
+base="${in%.moo}"
+root="${base%-TS*}"
+out="$root-TS-$ts.moo"
+
+echo "Using '$in' as starting database"
+echo "Using '$out' as saved state database"
+
+echo "PROGRESS:30"
+./moo "$in" "$out" &
+#[ $? ] && {
+#    cat /tmp/moo.log
+#    echo "PROGRESS:100"
+#    echo "MOO failed to start"
+#    exit 1
+#}
+
+
+echo "PROGRESS:70"
+# open -a Terminal 'telnet localhost 7777'
+# osascript -e 'tell application "Terminal" to activate'
+# osascript -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'
+osascript -e 'tell application "Terminal" to activate' \
+          -e 'tell application "System Events" to tell process "Terminal" to keystroke "telnet localhost 7777\n"'
+
+echo "PROGRESS:90"
+function finish() {
+    echo "PROGRESS:30"
+    sleep 2
+    echo "PROGRESS:60"
+    osascript -e 'tell application "Terminal" to quit'
+    echo "PROGRESS:90"
+    sleep 1
+    echo "PROGRESS:100"
+    echo "LambdaMOO is stopped"
+    sleep 3
+}
+
+# trap exit and print message
+trap finish SIGQUIT
+trap finish SIGINT
+trap finish SIGHUP
+trap finish SIGUSR1
+trap finish EXIT
+sleep 3
+
+echo "PROGRESS:100"
+echo "LambdaMOO is running"
+wait
+echo "LambdaMOO is stopped"
+echo "Child finished"
+
+# vim:autoindent
